@@ -31,29 +31,28 @@ mbti_data = {
     "ESFP": {"emoji": "🎉", "title": "연예인 (Entertainer)", "desc": "밝고 긍정적인 성격으로 사람들을 즐겁게 합니다. 인생을 즐길 줄 아는 타입이에요.", "job": "연예인, 배우, 이벤트 플래너, 홍보 전문가", "match": ["ISFJ", "ISTJ"], "color": "#FFB703"},
 }
 
-# --- 세션 상태로 선택 MBTI 관리 ---
+# --- 세션 상태 초기화 ---
 if "selected_mbti" not in st.session_state:
     st.session_state.selected_mbti = None
 
-# --- 입력창 ---
+# --- 검색 입력창 ---
 user_input = st.text_input(
     "🔎 MBTI를 입력하세요:",
     placeholder="예: INFP, ESTJ, ENTP...",
 ).upper().strip()
 
-# --- 사용자가 직접 입력한 MBTI 적용 ---
+# --- 입력 적용 ---
 if user_input:
     if user_input in mbti_data:
         st.session_state.selected_mbti = user_input
     else:
         st.error("⚠️ 존재하지 않는 MBTI 유형이에요. 다시 입력해 주세요!")
 
-# --- 현재 선택된 MBTI 표시 ---
+# --- MBTI 정보 표시 ---
 if st.session_state.selected_mbti:
     mbti = st.session_state.selected_mbti
     info = mbti_data[mbti]
 
-    # 테마 배경 카드
     st.markdown(
         f"""
         <div style='background-color:{info["color"]}25;
@@ -67,19 +66,16 @@ if st.session_state.selected_mbti:
         unsafe_allow_html=True
     )
 
-    # 추천 직업
     st.markdown(f"### 💼 추천 직업")
     st.success(info["job"])
 
-    # 궁합 MBTI (클릭 시 세션 갱신)
     st.markdown(f"### 💖 잘 맞는 궁합 MBTI")
     cols = st.columns(len(info["match"]))
     for i, m in enumerate(info["match"]):
         with cols[i]:
-            if st.button(f"{m}", use_container_width=True, key=f"match_{m}"):
+            if st.button(f"{m}", use_container_width=True, key=f"match_btn_{mbti}_{m}"):
                 st.session_state.selected_mbti = m
-                st.experimental_rerun()
+                st.rerun()
 
-# --- 푸터 ---
 st.markdown("---")
 st.caption("✨ 만든이: ChatGPT | Streamlit으로 구현된 MBTI 탐색 웹앱 💫")
