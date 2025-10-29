@@ -84,4 +84,4 @@ if user_input:
                 )
 
 st.markdown("---")
-st.caption("✨ 만든이: ChatGPT | Streamlit으로 구현된 MBTI 탐색 웹앱 💫")
+st.caption("✨ 만든이: 정영주 | Streamlit으로 구현된 MBTI 탐색 웹앱 💫")
