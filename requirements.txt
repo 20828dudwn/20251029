@@ -1,2 +1,4 @@
 pandas
-codle
+plotly
+folium
+yfinance
