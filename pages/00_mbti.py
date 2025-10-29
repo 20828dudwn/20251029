@@ -9,7 +9,7 @@ st.set_page_config(
 
 # --- 헤더 ---
 st.title("MBTI 성격 탐구소 🔍")
-st.markdown("**당신의 MBTI를 입력하고, 성격·직업·궁합까지 알아보세요! ✨**")
+st.markdown("**당신의 MBTI를 입력하고, 성격·직업·궁합까지 한눈에 확인하세요! ✨**")
 
 # --- MBTI 데이터 ---
 mbti_data = {
@@ -31,51 +31,57 @@ mbti_data = {
     "ESFP": {"emoji": "🎉", "title": "연예인 (Entertainer)", "desc": "밝고 긍정적인 성격으로 사람들을 즐겁게 합니다. 인생을 즐길 줄 아는 타입이에요.", "job": "연예인, 배우, 이벤트 플래너, 홍보 전문가", "match": ["ISFJ", "ISTJ"], "color": "#FFB703"},
 }
 
-# --- 세션 상태 초기화 ---
-if "selected_mbti" not in st.session_state:
-    st.session_state.selected_mbti = None
-
-# --- 검색 입력창 ---
+# --- 입력창 ---
 user_input = st.text_input(
     "🔎 MBTI를 입력하세요:",
     placeholder="예: INFP, ESTJ, ENTP...",
 ).upper().strip()
 
-# --- 입력 적용 ---
+# --- 결과 표시 ---
 if user_input:
-    if user_input in mbti_data:
-        st.session_state.selected_mbti = user_input
-    else:
+    if user_input not in mbti_data:
         st.error("⚠️ 존재하지 않는 MBTI 유형이에요. 다시 입력해 주세요!")
+    else:
+        info = mbti_data[user_input]
 
-# --- MBTI 정보 표시 ---
-if st.session_state.selected_mbti:
-    mbti = st.session_state.selected_mbti
-    info = mbti_data[mbti]
+        # 내 MBTI 카드
+        st.markdown(
+            f"""
+            <div style='background-color:{info["color"]}25;
+                        padding:20px;
+                        border-radius:15px;
+                        box-shadow:0px 0px 10px {info["color"]}50;'>
+                <h2 style='text-align:center;'>{info["emoji"]} {user_input} - {info["title"]}</h2>
+                <p style='text-align:center; font-size:18px;'>{info["desc"]}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    st.markdown(
-        f"""
-        <div style='background-color:{info["color"]}25;
-                    padding:20px;
-                    border-radius:15px;
-                    box-shadow:0px 0px 10px {info["color"]}50;'>
-            <h2 style='text-align:center;'>{info["emoji"]} {mbti} - {info["title"]}</h2>
-            <p style='text-align:center; font-size:18px;'>{info["desc"]}</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        # 추천 직업
+        st.markdown(f"### 💼 추천 직업")
+        st.success(info["job"])
 
-    st.markdown(f"### 💼 추천 직업")
-    st.success(info["job"])
-
-    st.markdown(f"### 💖 잘 맞는 궁합 MBTI")
-    cols = st.columns(len(info["match"]))
-    for i, m in enumerate(info["match"]):
-        with cols[i]:
-            if st.button(f"{m}", use_container_width=True, key=f"match_btn_{mbti}_{m}"):
-                st.session_state.selected_mbti = m
-                st.rerun()
+        # 궁합 MBTI
+        st.markdown(f"### 💖 잘 맞는 궁합 MBTI")
+        cols = st.columns(len(info["match"]))
+        for i, m in enumerate(info["match"]):
+            match_info = mbti_data[m]
+            with cols[i]:
+                st.markdown(
+                    f"""
+                    <div style='background-color:{match_info["color"]}20;
+                                border-radius:10px;
+                                padding:10px;
+                                text-align:center;
+                                box-shadow:0px 0px 6px {match_info["color"]}40;'>
+                        <h4>{match_info["emoji"]} {m}</h4>
+                        <p style='font-size:14px'>{match_info["title"]}</p>
+                        <p style='font-size:13px; color:#555'>{match_info["desc"]}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
 st.markdown("---")
 st.caption("✨ 만든이: ChatGPT | Streamlit으로 구현된 MBTI 탐색 웹앱 💫")
