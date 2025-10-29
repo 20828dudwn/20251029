@@ -11,7 +11,7 @@ st.set_page_config(
 st.title("MBTI 성격 탐구소 🔍")
 st.markdown("**당신의 MBTI를 입력하고, 성격·직업·궁합까지 알아보세요! ✨**")
 
-# --- MBTI 정보 데이터 ---
+# --- MBTI 데이터 ---
 mbti_data = {
     "INTJ": {"emoji": "🧠", "title": "전략가 (Architect)", "desc": "독립적이고 통찰력 있는 전략가예요. 큰 그림을 보고 효율적으로 문제를 해결합니다.", "job": "데이터 분석가, 과학자, 전략 컨설턴트, 엔지니어", "match": ["ENFP", "ENTP"], "color": "#5B5F97"},
     "INTP": {"emoji": "🤓", "title": "논리학자 (Logician)", "desc": "호기심 많고 아이디어가 넘치는 사고형 인재예요. 새로운 개념을 탐구하는 걸 좋아합니다.", "job": "연구원, 프로그래머, 철학자, 개발자", "match": ["ENTJ", "ESTJ"], "color": "#0081A7"},
@@ -31,45 +31,54 @@ mbti_data = {
     "ESFP": {"emoji": "🎉", "title": "연예인 (Entertainer)", "desc": "밝고 긍정적인 성격으로 사람들을 즐겁게 합니다. 인생을 즐길 줄 아는 타입이에요.", "job": "연예인, 배우, 이벤트 플래너, 홍보 전문가", "match": ["ISFJ", "ISTJ"], "color": "#FFB703"},
 }
 
-# --- 검색 입력창 ---
-user_input = st.text_input("🔎 MBTI를 입력하세요:", placeholder="예: INFP, ESTJ, ENTP...").upper().strip()
+# --- 세션 상태로 선택 MBTI 관리 ---
+if "selected_mbti" not in st.session_state:
+    st.session_state.selected_mbti = None
 
-# --- 검색 결과 표시 ---
+# --- 입력창 ---
+user_input = st.text_input(
+    "🔎 MBTI를 입력하세요:",
+    placeholder="예: INFP, ESTJ, ENTP...",
+).upper().strip()
+
+# --- 사용자가 직접 입력한 MBTI 적용 ---
 if user_input:
     if user_input in mbti_data:
-        info = mbti_data[user_input]
-
-        # 배경색 적용 (테마)
-        st.markdown(
-            f"""
-            <div style='background-color:{info["color"]}20;
-                        padding:20px;
-                        border-radius:15px;
-                        box-shadow:0px 0px 10px {info["color"]}55;'>
-                <h2 style='text-align:center;'>{info["emoji"]} {user_input} - {info["title"]}</h2>
-                <p style='text-align:center; font-size:18px;'>{info["desc"]}</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown(f"### 💼 추천 직업")
-        st.success(info["job"])
-
-        st.markdown("### 💖 잘 맞는 궁합 MBTI")
-        match_links = []
-        for m in info["match"]:
-            match_links.append(f"[{m}](?mbti={m})")
-        st.markdown("👉 " + " | ".join(match_links))
-
-        # URL 쿼리 파라미터로 궁합 클릭 시 이동
-        query_params = st.query_params
-        if "mbti" in query_params and query_params["mbti"].upper() in mbti_data:
-            selected_match = query_params["mbti"].upper()
-            st.experimental_rerun()
-
+        st.session_state.selected_mbti = user_input
     else:
         st.error("⚠️ 존재하지 않는 MBTI 유형이에요. 다시 입력해 주세요!")
+
+# --- 현재 선택된 MBTI 표시 ---
+if st.session_state.selected_mbti:
+    mbti = st.session_state.selected_mbti
+    info = mbti_data[mbti]
+
+    # 테마 배경 카드
+    st.markdown(
+        f"""
+        <div style='background-color:{info["color"]}25;
+                    padding:20px;
+                    border-radius:15px;
+                    box-shadow:0px 0px 10px {info["color"]}50;'>
+            <h2 style='text-align:center;'>{info["emoji"]} {mbti} - {info["title"]}</h2>
+            <p style='text-align:center; font-size:18px;'>{info["desc"]}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 추천 직업
+    st.markdown(f"### 💼 추천 직업")
+    st.success(info["job"])
+
+    # 궁합 MBTI (클릭 시 세션 갱신)
+    st.markdown(f"### 💖 잘 맞는 궁합 MBTI")
+    cols = st.columns(len(info["match"]))
+    for i, m in enumerate(info["match"]):
+        with cols[i]:
+            if st.button(f"{m}", use_container_width=True, key=f"match_{m}"):
+                st.session_state.selected_mbti = m
+                st.experimental_rerun()
 
 # --- 푸터 ---
 st.markdown("---")
