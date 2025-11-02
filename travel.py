@@ -41,22 +41,28 @@ embassy_info = {
 }
 
 # =========================
-# 뉴스 (예시)
-# =========================
-def get_news(country):
-    return [
-        {"title": f"{country} 최근 범죄 뉴스 1", "url": "#"},
-        {"title": f"{country} 사회·안전 뉴스 2", "url": "#"},
-        {"title": f"{country} 여행자 주의보 관련 뉴스 3", "url": "#"},
-    ]
-
-# =========================
 # 국가 정보 API
 # =========================
 def get_country_info(country):
     url = f"https://restcountries.com/v3.1/name/{country}"
     res = requests.get(url)
     return res.json()[0] if res.status_code == 200 else None
+
+# =========================
+# 안전 점수 국가별 설정
+# =========================
+country_safety_score = {
+    "대한민국": 90,
+    "일본": 88,
+    "중국": 60,
+    "미국": 70,
+    "프랑스": 75,
+    "독일": 85,
+    "영국": 80,
+    "캐나다": 85,
+    "호주": 90,
+    "태국": 55,
+}
 
 # =========================
 # Streamlit UI
@@ -67,7 +73,7 @@ selected_country_kr = st.sidebar.selectbox("국가 선택", list(country_map.key
 selected_country_en = country_map[selected_country_kr]
 
 # 안전 점수 카드
-safety_score = 75
+safety_score = country_safety_score.get(selected_country_kr, 70)
 st.sidebar.markdown(f"<div style='background-color:#f0f0f0; padding:15px; border-radius:10px; text-align:center;'>\n<h3>안전 점수</h3>\n<h1 style='color:#4CAF50;'>{safety_score}/100</h1>\n</div>", unsafe_allow_html=True)
 
 # 메인 화면 헤더
@@ -118,18 +124,7 @@ for r in risk_locations:
 st.subheader("🗺️ 지도 (국가 위치 + 대사관 + 위험 지역)")
 st_folium(m, width=800, height=500)
 
-# 뉴스
-st.subheader("📰 최근 범죄/안전 뉴스")
-for article in get_news(selected_country_en):
-    st.markdown(f"- [{article['title']}]({article['url']})")
-
-# 실제 실종자 데이터
-st.subheader("🚨 최근 실종자 정보")
-korean_missing_overseas = 2474
-domestic_missing_last_year = 124223
-st.markdown(f"<div style='padding:15px; border-radius:10px; background-color:#fff3e0;'>국내 신고된 실종자 수(작년): <b>{domestic_missing_last_year:,}건</b><br>해외 한국인 실종·납치·구금 건수(2018~2022 상반기): <b>{korean_missing_overseas:,}건</b></div>", unsafe_allow_html=True)
-
-# 여행 안전 팁
+# 여행 안전 팁 및 실종자 정보
 st.subheader("💡 여행 안전 팁")
 if selected_country_kr == "일본":
     st.info("일본은 안전하지만 관광지 소매치기와 지진 대비 필요")
@@ -139,5 +134,13 @@ elif selected_country_kr == "미국":
     st.error("총기 사건 빈발, 방문 전 위험도 확인 필요")
 elif selected_country_kr == "프랑스":
     st.warning("파리 관광지 소매치기 주의")
+elif selected_country_kr == "중국":
+    st.warning("대도시 교통사고 및 소매치기 주의")
 else:
     st.info("여행 시 기본 안전 수칙 준수")
+
+# 실제 실종자 데이터
+st.subheader("🚨 최근 실종자 정보")
+korean_missing_overseas = 2474
+domestic_missing_last_year = 124223
+st.markdown(f"<div style='padding:15px; border-radius:10px; background-color:#fff3e0;'>국내 신고된 실종자 수(작년): <b>{domestic_missing_last_year:,}건</b><br>해외 한국인 실종·납치·구금 건수(2018~2022 상반기): <b>{korean_missing_overseas:,}건</b></div>", unsafe_allow_html=True)
