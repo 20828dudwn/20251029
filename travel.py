@@ -1,3 +1,8 @@
+streamlit
+streamlit-folium
+folium
+requests
+# travel.py
 import streamlit as st
 import requests
 import folium
