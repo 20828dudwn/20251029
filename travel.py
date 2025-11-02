@@ -3,11 +3,9 @@ import requests
 import pandas as pd
 import os
 from datetime import datetime
-from dotenv import load_dotenv
 import folium
 from streamlit_folium import st_folium
 
-load_dotenv()
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
 
 st.set_page_config(page_title="Travel Safety Explorer", layout="wide")
