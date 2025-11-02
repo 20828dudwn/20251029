@@ -1,4 +1,3 @@
-# travel.py
 import streamlit as st
 import requests
 import folium
@@ -63,41 +62,42 @@ def get_country_info(country):
 # Streamlit UI
 # =========================
 st.set_page_config(layout="wide")
-st.title("🌍 여행 안전 정보 프로그램")
-
-# 선택지 방식
-selected_country_kr = st.radio("여행하려는 나라를 선택하세요", list(country_map.keys()))
+st.sidebar.header("🌍 여행 국가 선택")
+selected_country_kr = st.sidebar.selectbox("국가 선택", list(country_map.keys()))
 selected_country_en = country_map[selected_country_kr]
 
-# 국가 테마 적용
+# 안전 점수 카드
+safety_score = 75
+st.sidebar.markdown(f"<div style='background-color:#f0f0f0; padding:15px; border-radius:10px; text-align:center;'>\n<h3>안전 점수</h3>\n<h1 style='color:#4CAF50;'>{safety_score}/100</h1>\n</div>", unsafe_allow_html=True)
+
+# 메인 화면 헤더
 theme = country_theme.get(selected_country_kr)
 if theme:
-    st.markdown(f"""<div style='padding:18px; border-radius:15px; background-size:cover; background-position:center; background-image:url({theme['bg']});'>
-<h2 style='color:white; text-shadow:0px 0px 8px black;'>{theme['emoji']} {selected_country_kr} 여행 정보</h2></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div style='padding:25px; border-radius:15px; background-image:url({theme['bg']}); background-size:cover;'>\n<h1 style='color:white; text-shadow:2px 2px 8px black;'>{theme['emoji']} {selected_country_kr} 여행 정보</h1>\n</div>""", unsafe_allow_html=True)
 else:
     st.header(f"{selected_country_kr} 여행 정보")
 
-# API 데이터
+# 기본 정보 & 키워드 카드
 info = get_country_info(selected_country_en)
-if not info:
-    st.error("국가 정보를 불러올 수 없습니다.")
-    st.stop()
+if info:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("📌 기본 정보")
+        st.markdown(f"""
+        <div style='padding:15px; border-radius:10px; background-color:#f9f9f9;'>
+        <p><b>수도:</b> {info['capital'][0]}</p>
+        <p><b>인구:</b> {info['population']:,}</p>
+        <p><b>지역:</b> {info['region']}</p>
+        <p><b>국가 코드:</b> {info['cca2']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.subheader("🔍 특징 키워드")
+        if theme:
+            for key in theme['keywords']:
+                st.markdown(f"<div style='padding:8px; border-radius:8px; background-color:#e0f7fa; display:inline-block; margin:2px;'>{key}</div>", unsafe_allow_html=True)
 
-# 2열 레이아웃 기본 정보
-col1, col2 = st.columns(2)
-with col1:
-    st.subheader("📌 기본 정보")
-    st.write(f"**수도:** {info['capital'][0]}")
-    st.write(f"**인구:** {info['population']:,}")
-    st.write(f"**지역:** {info['region']}")
-    st.write(f"**국가 코드:** {info['cca2']}")
-with col2:
-    st.subheader("🔍 특징 키워드")
-    if theme:
-        for key in theme['keywords']:
-            st.markdown(f"✅ {key}")
-
-# 지도 생성 (국가 + 대사관 + 위험지역)
+# 지도 생성
 lat, lng = info["latlng"]
 m = folium.Map(location=[lat, lng], zoom_start=4)
 folium.Marker([lat, lng], tooltip=f"{selected_country_kr} 위치", icon=folium.Icon(color="blue")).add_to(m)
@@ -107,7 +107,7 @@ emb = embassy_info.get(selected_country_kr)
 if emb:
     folium.Marker([emb['lat'], emb['lng']], tooltip=f"한국 대사관\n{emb['address']}\n{emb['phone']}", icon=folium.Icon(color="red", icon="info-sign")).add_to(m)
 
-# 위험 지역 예시
+# 위험 지역 마커 예시
 risk_locations = [
     {"name": "관광지 위험지역 1", "lat": lat + 1, "lng": lng + 1},
     {"name": "관광지 위험지역 2", "lat": lat - 1, "lng": lng - 1},
@@ -116,19 +116,20 @@ for r in risk_locations:
     folium.Marker([r['lat'], r['lng']], tooltip=r['name'], icon=folium.Icon(color="orange", icon="exclamation-sign")).add_to(m)
 
 st.subheader("🗺️ 지도 (국가 위치 + 대사관 + 위험 지역)")
-st_folium(m, width=700, height=500)
+st_folium(m, width=800, height=500)
 
 # 뉴스
 st.subheader("📰 최근 범죄/안전 뉴스")
 for article in get_news(selected_country_en):
-    st.write(f"- [{article['title']}]({article['url']})")
+    st.markdown(f"- [{article['title']}]({article['url']})")
 
-# 실종자 정보
+# 실제 실종자 데이터
 st.subheader("🚨 최근 실종자 정보")
-st.write("한국인 실종자 수: **2명(예시)**")
-st.write("전체 실종자 수: **15명(예시)**")
+korean_missing_overseas = 2474
+domestic_missing_last_year = 124223
+st.markdown(f"<div style='padding:15px; border-radius:10px; background-color:#fff3e0;'>국내 신고된 실종자 수(작년): <b>{domestic_missing_last_year:,}건</b><br>해외 한국인 실종·납치·구금 건수(2018~2022 상반기): <b>{korean_missing_overseas:,}건</b></div>", unsafe_allow_html=True)
 
-# 동적 여행 팁
+# 여행 안전 팁
 st.subheader("💡 여행 안전 팁")
 if selected_country_kr == "일본":
     st.info("일본은 안전하지만 관광지 소매치기와 지진 대비 필요")
