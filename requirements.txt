@@ -1,4 +1,4 @@
-pandas
-plotly
+streamlit
+streamlit-folium
 folium
-yfinance
+requests
